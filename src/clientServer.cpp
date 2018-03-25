@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
     int localPortNum = atoi(localPortStr); // the port number in the form of integer.
 
 	// start to configure the server.
-	configureServer(localIP, localPortNum);
+//**	configureServer(localIP, localPortNum);
 
 	char *remoteIP = argv[3]; // the server IP.
 	char *remotePortStr = argv[4]; // the port number in the form of c string.
@@ -64,21 +64,73 @@ int main(int argc, char *argv[])
        	                          // connect to.
 
     struct sockaddr_in echoserver;  // structure for address of the server.
+    struct sockaddr_in echoserverConf; // structure for address of the
+                                       // server that is pass from
+                                       // configuring the client.
+
+    // ---------------- fork 2 processes ----------------
+
+    pid_t pid;
+
+    	// fork will make 2 processes
+    	pid = fork();
+
+    	if (pid == -1)
+    	{
+    		perror("fork");
+    		exit(EXIT_FAILURE);
+    	}
+
+    	if (pid == 0)
+    	{
+
+    		// start to configure the server.
+    	    configureServer(localIP, localPortNum);
+
+//    		// Child process: fork() returned 0
+//    		int j;
+//    		for (j = 0; j < 10; j++)
+//    		{
+//    			cout << "child: " << j << endl;
+//    			sleep(1);
+//    		}
+    	}
+    	else
+    	{
+
+    		// start to configure the client socket.
+    		echoserverConf = configureClient(remoteIP, remotePortStr, sock, echoserver, localIP);
+
+
+//    		// Parent pocess: fork() returned a positive number
+//    		int i;
+//    		for (i = 0; i < 10; i++)
+//    		{
+//    			cout << "parent: " << i << endl;
+//    			sleep(1);
+//    		}
+    	}
+
+
 
     // start to configure the client socket.
-    struct sockaddr_in echoserverConf = configureClient(remoteIP, remotePortStr, sock, echoserver, localIP);
+//    struct sockaddr_in echoserverConf = configureClient(remoteIP, remotePortStr, sock, echoserver, localIP);
+
+    // -----------------------------------------------------
 
     char msg[100];
 
-    /* Provide a custom prompt. */
-	printf("\n(Yao): any entered a message will be sent to the server: %s:%s\n", remoteIP, remotePortStr);
-	printf("\n(Yao): Enter a message here: ");
+    while(true)
+    {
+	    printf("\n(Yao): any entered a message will be sent to the server: %s:%s\n", remoteIP, remotePortStr);
+	    printf("\n(Yao): Enter a message here: ");
 
-	/* Accept input. "+2" is for the \n and \0 characters. */
-	fgets(msg, 100, stdin);
+	    // Accept input. "+2" is for the \n and \0 characters.
+	    fgets(msg, 100, stdin);
 
-    // send the message to the server.
-	sendMessage(sock, echoserverConf, msg);
+	    // send the message to the server.
+	    sendMessage(sock, echoserverConf, msg);
+    }
 
 	// close the socket.
 //    closeSock(sock);
@@ -138,7 +190,11 @@ void configureServer(char *serverIP, int portNum)
             perror("Failed to receive message");
             exit(EXIT_FAILURE);
         }
-        cerr << "Client connected: " << inet_ntoa(echoclient.sin_addr) << "\n";
+        cerr << "(Yao): The server connected to client: (" << inet_ntoa(echoclient.sin_addr) << ")\n";
+
+        buffer[received] = '\0';        // Assure null-terminated string
+        cout << "(Yao): The server received message from client: (" << inet_ntoa(echoclient.sin_addr) << ") and the message: " << buffer << endl;
+
         //Send the message back to client
         if (sendto(sock, buffer, received, 0, (struct sockaddr *) &echoclient,
                 clientlen) != received)
