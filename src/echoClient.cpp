@@ -35,15 +35,16 @@ int main(int argc, char *argv[])
 	
 	struct sockaddr_in echoserver;  // structure for address of the server.
 
-
 	char *port = argv[2]; // the port will be used for UDP messages
 	                      // transmission.
     char *message = argv[3]; // the UDP message the client will send to the server.
     int sock;
 
     const char *localIP = "127.0.0.100"; // assign this ip to local client.
-    char *serverIP = "127.0.0.1"; // the server IP address that the client will
-    	                          // connect to.
+//    char *serverIP = "127.0.0.2"; // the server IP address that the client will
+//    	                          // connect to.
+    char *serverIP = argv[1]; // the server IP address that the client will
+       	                          // connect to.
 
     // start to configure the client socket.
     struct sockaddr_in echoserverConf = configureClient(serverIP, port, sock, echoserver, localIP);

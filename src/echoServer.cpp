@@ -21,7 +21,7 @@
 #include <iostream>
 using namespace std;
 
-void configureServer(int portNum);
+void configureServer(char *serverIP, int portNum);
 
 int main(int argc, char *argv[])
 {
@@ -35,8 +35,10 @@ int main(int argc, char *argv[])
     char* portStr = argv[1]; // the port number in the form of c string.
     int portNum = atoi(portStr); // the port number in the form of integer.
 
+    char *serverIP = "127.0.0.2"; // the server IP.
+
     // start to configure the server.
-    configureServer(portNum);
+    configureServer(serverIP, portNum);
 
     return 0;
 }
@@ -48,7 +50,7 @@ int main(int argc, char *argv[])
  * @para portNum The port number through which the message will be passed.
  * @return No return value.
  */
-void configureServer(int portNum)
+void configureServer(char *serverIP, int portNum)
 {
     char buffer[256];
     unsigned int clientlen, serverlen;
@@ -68,7 +70,9 @@ void configureServer(int portNum)
     // Construct the server sockaddr_in structure
     memset(&echoserver, 0, sizeof(echoserver)); /* Clear struct */
     echoserver.sin_family = AF_INET; /* Internet/IP */
-    echoserver.sin_addr.s_addr = INADDR_ANY; /* Any IP address */
+//    echoserver.sin_addr.s_addr = INADDR_ANY; /* Any IP address */
+
+    echoserver.sin_addr.s_addr = inet_addr( serverIP );   /* the server IP address */
     echoserver.sin_port = htons(portNum); /* server port */
 
     // Bind the socket
