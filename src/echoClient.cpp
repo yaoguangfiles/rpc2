@@ -1,10 +1,9 @@
 /*
- * echoClient.cxx
+ * echoClient.cpp
  * 
- * UPD echo client
- * 
- * 	sends message to echo server
- * 	waits for message received from server 
+ * 	The client will send message to the server via UDP. The client will
+ * 	waits for receiving the message from server after it sends the
+ * 	message. sends message to echo server.
  * 	      
  * 	command line arguments:
  * 		argv[1] IP number of server
@@ -23,7 +22,7 @@
 #include <iostream>
 using namespace std;
 
-struct sockaddr_in configureClient(char *ip, char *port, int &sock, struct sockaddr_in echoserver);
+struct sockaddr_in configureClient(char *ip, char *port, int &sock, struct sockaddr_in echoserver, const char *localIP);
 void sendMessage(int sock, struct sockaddr_in echoserver, char *message);
 void closeSock(int sock);
 
@@ -34,76 +33,55 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 	
-	struct sockaddr_in echoserver;  // structure for address of server
+	struct sockaddr_in echoserver;  // structure for address of the server.
 
-	char *ip = argv[1];
-	char *port = argv[2];
-    char *message = argv[3];
+
+	char *port = argv[2]; // the port will be used for UDP messages
+	                      // transmission.
+    char *message = argv[3]; // the UDP message the client will send to the server.
     int sock;
 
-    struct sockaddr_in echoserverConf = configureClient(ip, port, sock, echoserver);
+    const char *localIP = "127.0.0.100"; // assign this ip to local client.
+    char *serverIP = "127.0.0.1"; // the server IP address that the client will
+    	                          // connect to.
 
-//    sendMessage(socket);
+    // start to configure the client socket.
+    struct sockaddr_in echoserverConf = configureClient(serverIP, port, sock, echoserver, localIP);
+
+    // send the message to the server.
 	sendMessage(sock, echoserverConf, message);
 
+	// close the socket.
     closeSock(sock);
-
-//	char buffer[256];
-//	int echolen, received = 0;
-//	unsigned int addrlen;
-//
-//	int sock;
-//	struct sockaddr_in echoserver;  // structure for address of server
-//
-//	// Create the UDP socket
-//	if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-//		perror("Failed to create socket");
-//		exit(EXIT_FAILURE);
-//	}
-//
-//	// Construct the server sockaddr_in structure
-//	memset(&echoserver, 0, sizeof(echoserver));        /* Clear struct */
-//	echoserver.sin_family = AF_INET;                   /* Internet/IP */
-//	echoserver.sin_addr.s_addr = inet_addr(argv[1]);   /* IP address */
-//	echoserver.sin_port = htons(atoi(argv[2]));        /* server port */
-//
-//	// Send the message to the server
-//	echolen = strlen(argv[3]);
-//	if (sendto(sock, argv[3], strlen(argv[3]), 0, (struct sockaddr *) &echoserver, sizeof(echoserver)) != echolen) {
-//		perror("Mismatch in number of sent bytes");
-//		exit(EXIT_FAILURE);
-//	}
-//
-//	// Receive the message back from the server
-//	addrlen = sizeof(echoserver);
-//	if ((received = recvfrom(sock, buffer, 256, 0, (struct sockaddr *) &echoserver, &addrlen)) != echolen) {
-//		perror("Mismatch in number of received bytes");
-//		exit(EXIT_FAILURE);
-//	}
-//
-//	buffer[received] = '\0';        /* Assure null-terminated string */
-//	cout << "Server (" << inet_ntoa(echoserver.sin_addr) << ") echoed: " << buffer << endl;
-//
-//	close(sock);
 	
 	return 0;
 }
 
-
-struct sockaddr_in configureClient(char *ip, char *port, int &sock, struct sockaddr_in echoserver)
+/**
+ * Configure the client for the socket for UDP.
+ * @para ip The ip address to which the message will be sent to.
+ * @para port The port through which the message will be passed.
+ * @para sock The socket descriptor.
+ * @para echoserver The structure describing an Internet socket address.
+ * @return sockaddr_in The structure describing an Internet socket address.
+ *     I will be used for sending and receiving messages from the server.
+ */
+struct sockaddr_in configureClient(char *ip, char *port, int &sock, struct sockaddr_in echoserver, const char *localIP)
 {
-//    char buffer[256];
-//    int echolen, received = 0;
-//    unsigned int addrlen;
-
-//    int sock;
-//    struct sockaddr_in echoserver;  // structure for address of server
-
     // Create the UDP socket
     if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
         perror("Failed to create socket");
         exit(EXIT_FAILURE);
     }
+
+
+
+    // Bind to a specific network interface (and optionally a specific local port)
+    struct sockaddr_in localaddr;
+    localaddr.sin_family = AF_INET;
+    localaddr.sin_addr.s_addr = inet_addr(localIP);
+    localaddr.sin_port = 0;  // Any local port will do
+    bind(sock, (struct sockaddr *)&localaddr, sizeof(localaddr));
 
     // Construct the server sockaddr_in structure
     memset(&echoserver, 0, sizeof(echoserver));        /* Clear struct */
@@ -111,28 +89,16 @@ struct sockaddr_in configureClient(char *ip, char *port, int &sock, struct socka
     echoserver.sin_addr.s_addr = inet_addr( ip );   /* IP address */
     echoserver.sin_port = htons(atoi(port));        /* server port */
 
-//    // Send the message to the server
-//    echolen = strlen(argv[3]);
-//    if (sendto(sock, argv[3], strlen(argv[3]), 0, (struct sockaddr *) &echoserver, sizeof(echoserver)) != echolen) {
-//        perror("Mismatch in number of sent bytes");
-//        exit(EXIT_FAILURE);
-//    }
-//
-//    // Receive the message back from the server
-//    addrlen = sizeof(echoserver);
-//    if ((received = recvfrom(sock, buffer, 256, 0, (struct sockaddr *) &echoserver, &addrlen)) != echolen) {
-//        perror("Mismatch in number of received bytes");
-//        exit(EXIT_FAILURE);
-//    }
-//
-//    buffer[received] = '\0';        /* Assure null-terminated string */
-//    cout << "Server (" << inet_ntoa(echoserver.sin_addr) << ") echoed: " << buffer << endl;
-
-//    close(sock);
-
     return echoserver;
 }
 
+/**
+ * The client will send a message to the server.
+ * @para sock The socket descriptor.
+ * @para echoserver The structure describing an Internet socket address.
+ * @para message The message will be sent to the server.
+ * @return No return value.
+ */
 void sendMessage(int sock, struct sockaddr_in echoserver, char *message)
 {
     char buffer[256];
@@ -157,6 +123,11 @@ void sendMessage(int sock, struct sockaddr_in echoserver, char *message)
     cout << "Server (" << inet_ntoa(echoserver.sin_addr) << ") echoed: " << buffer << endl;
 }
 
+/**
+ * Close the client UDP socket.
+ * @para sock The socket descriptor.
+ * @return No return value.
+ */
 void closeSock(int sock)
 {
     close(sock);
